@@ -1,4 +1,4 @@
-FROM php:7.2-fpm
+FROM php:7.3-fpm
 
 # Copy composer.lock and composer.json
 COPY composer.lock composer.json /var/www/
@@ -25,21 +25,16 @@ RUN apt-get update && apt-get install -y \
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Install extensions
-RUN docker-php-ext-install pdo_mysql mbstring zip exif pcntl
+# php:7.2-fpm
+# RUN docker-php-ext-install pdo_mysql mbstring zip exif pcntl 
+RUN docker-php-ext-install pdo_mysql mbstring exif pcntl
 # RUN docker-php-ext-configure gd --with-gd --with-freetype-dir=/usr/include/ --with-jpeg-dir=/usr/include/ --with-png-dir=/usr/include/
 RUN docker-php-ext-install gd
 
 # patch and fix the php bug  (reference: https://github.com/docker-library/php/issues/865#issuecomment-511163936)
-RUN apt-get install -y pkg-config patch
-ADD https://git.archlinux.org/svntogit/packages.git/plain/trunk/freetype.patch?h=packages/php /tmp/freetype.patch
-RUN docker-php-source extract; \
-  cd /usr/src/php; \
-  patch -p1 -i /tmp/freetype.patch; \
-  rm /tmp/freetype.patch
-RUN docker-php-ext-configure gd --with-freetype-dir --with-jpeg-dir=/usr/include/
 
 # Install composer
-RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer --version=1.10.13
 
 # Add user for laravel application
 RUN groupadd -g 1000 www
